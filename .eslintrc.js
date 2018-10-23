@@ -6,9 +6,13 @@ module.exports = {
   extends: [
     'plugin:vue/essential',
     '@vue/airbnb',
+    'prettier',
   ],
+  'plugins': ['prettier'],
   rules: {
     semi: [2, 'never'],
+
+    'prettier/prettier': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
@@ -16,4 +20,4 @@ module.exports = {
   parserOptions: {
     parser: 'babel-eslint',
   },
-};
+}
