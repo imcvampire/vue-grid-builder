@@ -5,6 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "buid:bundle": "vue-cli-service build --target lib --name vue-grid-builder ./src/components/grid-builder",
     "lint": "vue-cli-service lint",
     "test:e2e": "vue-cli-service test:e2e",
     "test:unit": "vue-cli-service test:unit"
@@ -23,6 +24,7 @@
     "babel-core": "7.0.0-bridge.0",
     "babel-jest": "^23.0.1",
     "lint-staged": "^7.2.2",
+    "postcss-preset-env": "^6.2.0",
     "vue-template-compiler": "^2.5.17"
   },
   "gitHooks": {
@@ -37,5 +39,16 @@
       "vue-cli-service lint",
       "git add"
     ]
+  },
+  "files": [
+    "dist/*",
+    "src/*",
+    "public/*",
+    "*.json",
+    "*.js"
+  ],
+  "engines": {
+    "node": "^10.0.0",
+    "yarn": "^1.9.0"
   }
 }
