@@ -10,10 +10,11 @@
     :use-css-transforms="true"
     :margin="[0,0]"
   >
-    <div 
-      ref="container" 
-      class="container vue-drag-select" 
-      @mousedown="onMouseDown">
+    <div
+      ref="container"
+      class="container vue-drag-select"
+      @mousedown="onMouseDown"
+    >
       <grid-item
         v-for="item in layout"
         :class="getClasses(item)"
@@ -29,10 +30,11 @@
         {{ item.i }}
       </grid-item>
       <slot :selectedItems="selectedItems"/>
-      <div 
-        v-if="mouseDown" 
-        :style="selectionBoxStyling" 
-        class="vue-drag-select-box"/>
+      <div
+        v-if="mouseDown"
+        :style="selectionBoxStyling"
+        class="vue-drag-select-box"
+      />
     </div>
   </grid-layout>
 </template>
@@ -55,9 +57,6 @@ export default {
   name: 'GridBuilder',
   components: {
     VueGridLayout,
-  },
-  props: {
-    msg: String,
   },
   data() {
     return {
@@ -242,7 +241,7 @@ body {
 }
 
 .container {
-  width: 330;
+  width: 330px;
 }
 
 /* Custom styling */

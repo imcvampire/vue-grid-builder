@@ -8,7 +8,7 @@
 import GridBuilder from './components/grid.vue'
 
 export default {
-  name: 'app',
+  name: 'App',
   components: {
     GridBuilder,
   },
