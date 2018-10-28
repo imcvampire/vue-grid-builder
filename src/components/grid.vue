@@ -30,7 +30,7 @@
           y: Math.floor(index / 6),
           w: 1,
           h: 1,
-          i: index,
+          'i': index,
         })),
         isDraggable: false,
         mouseDown: false,
