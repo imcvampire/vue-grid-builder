@@ -10,10 +10,10 @@ module.exports = {
   rules: {
     semi: [2, 'never'],
 
-    'prettier/prettier': isStrict ? 'error' : 'warn',
+    'prettier/prettier': isStrict ? 'error' : 'off',
 
-    'no-console': isStrict ? 'error' : 'warn',
-    'no-debugger': isStrict ? 'error' : 'warn',
+    'no-console': isStrict ? 'error' : 'off',
+    'no-debugger': isStrict ? 'error' : 'off',
   },
   parserOptions: {
     parser: 'babel-eslint',
