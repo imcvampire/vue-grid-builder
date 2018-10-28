@@ -5,7 +5,7 @@ module.exports = {
   env: {
     node: true,
   },
-  extends: ['plugin:vue/essential', '@vue/airbnb', 'prettier'],
+  extends: ['plugin:vue/recommended', '@vue/airbnb', 'prettier'],
   plugins: ['prettier'],
   rules: {
     semi: [2, 'never'],

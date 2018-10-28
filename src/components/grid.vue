@@ -10,11 +10,13 @@
     :use-css-transforms="true"
     :margin="[0,0]"
   >
-    <div class="container vue-drag-select" @mousedown="onMouseDown" ref="container">
+    <div 
+      ref="container" 
+      class="container vue-drag-select" 
+      @mousedown="onMouseDown">
       <grid-item
-        class="cell"
-        :class="getClasses(item)"
         v-for="item in layout"
+        :class="getClasses(item)"
         :data-item="item"
         :x="item.x"
         :y="item.y"
@@ -22,11 +24,15 @@
         :h="item.h"
         :i="item.i"
         :key="item.i"
+        class="cell"
       >
-        {{item.i}}
+        {{ item.i }}
       </grid-item>
       <slot :selectedItems="selectedItems"/>
-      <div v-if="mouseDown" class="vue-drag-select-box" :style="selectionBoxStyling"></div>
+      <div 
+        v-if="mouseDown" 
+        :style="selectionBoxStyling" 
+        class="vue-drag-select-box"/>
     </div>
   </grid-layout>
 </template>
@@ -46,10 +52,10 @@ const createGrid = ({ x, y, w, h, i, selected = false }) => ({
 })
 
 export default {
+  name: 'GridBuilder',
   components: {
     VueGridLayout,
   },
-  name: 'GridBuilder',
   props: {
     msg: String,
   },
@@ -107,6 +113,27 @@ export default {
         height: `${height}px`,
       }
     },
+  },
+  mounted() {
+    this.$children[0].$children.forEach(child => {
+      child.$on('click', () => {
+        const included = this.selectedItems.find(item => child.$el === item.$el)
+        if (included) {
+          this.selectedItems = this.selectedItems.filter(item => child.$el !== item.$el)
+        } else {
+          this.selectedItems.push(child)
+        }
+      })
+    })
+  },
+  beforeDestroy() {
+    // Remove event listeners
+    window.removeEventListener('mousemove', this.onMouseMove)
+    window.removeEventListener('mouseup', this.onMouseUp)
+
+    this.$children.forEach(child => {
+      child.$off('click')
+    })
   },
   methods: {
     getScroll() {
@@ -191,27 +218,6 @@ export default {
       }
       return false
     },
-  },
-  mounted() {
-    this.$children[0].$children.forEach(child => {
-      child.$on('click', () => {
-        const included = this.selectedItems.find(item => child.$el === item.$el)
-        if (included) {
-          this.selectedItems = this.selectedItems.filter(item => child.$el !== item.$el)
-        } else {
-          this.selectedItems.push(child)
-        }
-      })
-    })
-  },
-  beforeDestroy() {
-    // Remove event listeners
-    window.removeEventListener('mousemove', this.onMouseMove)
-    window.removeEventListener('mouseup', this.onMouseUp)
-
-    this.$children.forEach(child => {
-      child.$off('click')
-    })
   },
 }
 </script>
