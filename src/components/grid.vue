@@ -12,7 +12,9 @@
 
 <script>
   import VueGridLayout from 'vue-grid-layout'
-  
+
+  const nGrids = 6 * 12
+
   export default {
     components: {
       VueGridLayout,
@@ -23,12 +25,12 @@
     },
     data() {
       return {
-        layout: new Array(72).fill({}).map((item, index) => ({
-          "x": index % 6,
-          "y": Math.floor(index / 6),
-          "w": 1,
-          "h": 1,
-          "i": index
+        layout: new Array(nGrids).fill(null).map((item, index) => ({
+          x: index % 6,
+          y: Math.floor(index / 6),
+          w: 1,
+          h: 1,
+          i: index,
         })),
         isDraggable: false,
         mouseDown: false,
@@ -41,16 +43,16 @@
       selectionBox() {
         // Only set styling when necessary
         if (!this.mouseDown || !this.startPoint || !this.endPoint) return {}
-  
+
         const clientRect = this.$el.getBoundingClientRect()
         const scroll = this.getScroll()
-  
+
         // Calculate position and dimensions of the selection box
         const left = Math.min(this.startPoint.x, this.endPoint.x) - clientRect.left - scroll.x
         const top = Math.min(this.startPoint.y, this.endPoint.y) - clientRect.top - scroll.y
         const width = Math.abs(this.startPoint.x - this.endPoint.x)
         const height = Math.abs(this.startPoint.y - this.endPoint.y)
-  
+
         // Return the styles to be applied
         return {
           left,
@@ -62,14 +64,14 @@
       selectionBoxStyling() {
         // Only set styling when necessary
         if (!this.mouseDown || !this.startPoint || !this.endPoint) return {}
-  
+
         const {
           left,
           top,
           width,
           height
         } = this.selectionBox
-  
+
         // Return the styles to be applied
         return {
           left: `${left}px`,
@@ -88,7 +90,7 @@
             y: 0
           }
         }
-  
+
         return {
           x: this.$el.scrollLeft || document.body.scrollLeft || document.documentElement.scrollLeft,
           y: this.$el.scrollTop || document.body.scrollTop || document.documentElement.scrollTop
@@ -105,14 +107,14 @@
       onMouseDown(event) {
         // Ignore right clicks
         if (event.button === 2) return
-  
+
         // Register begin point
         this.mouseDown = true
         this.startPoint = {
           x: event.pageX,
           y: event.pageY
         }
-  
+
         // Start listening for mouse move and up events
         window.addEventListener('mousemove', this.onMouseMove)
         window.addEventListener('mouseup', this.onMouseUp)
@@ -134,7 +136,7 @@
         // Clean up event listeners
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
-  
+
         // Reset state
         this.mouseDown = false
         this.startPoint = null
@@ -175,7 +177,7 @@
       // Remove event listeners
       window.removeEventListener('mousemove', this.onMouseMove)
       window.removeEventListener('mouseup', this.onMouseUp)
-  
+
       this.$children.forEach((child) => {
         child.$off('click')
       })
