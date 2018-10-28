@@ -11,178 +11,177 @@
 </template>
 
 <script>
-  import VueGridLayout from 'vue-grid-layout'
+import VueGridLayout from 'vue-grid-layout'
 
-  const nGrids = 6 * 12
+const nGrids = 6 * 12
 
-  export default {
-    components: {
-      VueGridLayout,
-    },
-    name: 'GridBuilder',
-    props: {
-      msg: String,
-    },
-    data() {
+export default {
+  components: {
+    VueGridLayout,
+  },
+  name: 'GridBuilder',
+  props: {
+    msg: String,
+  },
+  data() {
+    return {
+      layout: new Array(nGrids).fill(null).map((item, index) => ({
+        x: index % 6,
+        y: Math.floor(index / 6),
+        w: 1,
+        h: 1,
+        i: index,
+      })),
+      isDraggable: false,
+      mouseDown: false,
+      startPoint: null,
+      endPoint: null,
+      selectedItems: [],
+    }
+  },
+  computed: {
+    selectionBox() {
+      // Only set styling when necessary
+      if (!this.mouseDown || !this.startPoint || !this.endPoint) return {}
+
+      const clientRect = this.$el.getBoundingClientRect()
+      const scroll = this.getScroll()
+
+      // Calculate position and dimensions of the selection box
+      const left = Math.min(this.startPoint.x, this.endPoint.x) - clientRect.left - scroll.x
+      const top = Math.min(this.startPoint.y, this.endPoint.y) - clientRect.top - scroll.y
+      const width = Math.abs(this.startPoint.x - this.endPoint.x)
+      const height = Math.abs(this.startPoint.y - this.endPoint.y)
+
+      // Return the styles to be applied
       return {
-        layout: new Array(nGrids).fill(null).map((item, index) => ({
-          x: index % 6,
-          y: Math.floor(index / 6),
-          w: 1,
-          h: 1,
-          'i': index,
-        })),
-        isDraggable: false,
-        mouseDown: false,
-        startPoint: null,
-        endPoint: null,
-        selectedItems: []
+        left,
+        top,
+        width,
+        height,
       }
     },
-    computed: {
-      selectionBox() {
-        // Only set styling when necessary
-        if (!this.mouseDown || !this.startPoint || !this.endPoint) return {}
+    selectionBoxStyling() {
+      // Only set styling when necessary
+      if (!this.mouseDown || !this.startPoint || !this.endPoint) return {}
 
-        const clientRect = this.$el.getBoundingClientRect()
-        const scroll = this.getScroll()
+      const { left, top, width, height } = this.selectionBox
 
-        // Calculate position and dimensions of the selection box
-        const left = Math.min(this.startPoint.x, this.endPoint.x) - clientRect.left - scroll.x
-        const top = Math.min(this.startPoint.y, this.endPoint.y) - clientRect.top - scroll.y
-        const width = Math.abs(this.startPoint.x - this.endPoint.x)
-        const height = Math.abs(this.startPoint.y - this.endPoint.y)
-
-        // Return the styles to be applied
-        return {
-          left,
-          top,
-          width,
-          height
-        }
-      },
-      selectionBoxStyling() {
-        // Only set styling when necessary
-        if (!this.mouseDown || !this.startPoint || !this.endPoint) return {}
-
-        const {
-          left,
-          top,
-          width,
-          height
-        } = this.selectionBox
-
-        // Return the styles to be applied
-        return {
-          left: `${left}px`,
-          top: `${top}px`,
-          width: `${width}px`,
-          height: `${height}px`
-        }
+      // Return the styles to be applied
+      return {
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`,
       }
     },
-    methods: {
-      getScroll() {
-        // If we're on the server, default to 0,0
-        if (typeof document === 'undefined') {
-          return {
-            x: 0,
-            y: 0
-          }
-        }
-
+  },
+  methods: {
+    getScroll() {
+      // If we're on the server, default to 0,0
+      if (typeof document === 'undefined') {
         return {
-          x: this.$el.scrollLeft || document.body.scrollLeft || document.documentElement.scrollLeft,
-          y: this.$el.scrollTop || document.body.scrollTop || document.documentElement.scrollTop
+          x: 0,
+          y: 0,
         }
-      },
-      getClasses(item) {
-        // console.log(this.selectedItems.map(_item => _item.i))
-        const isActive = !!(this.selectedItems.find((selectedItem) => parseInt(selectedItem.i, 10) === item.i))
-        return {
-          item: true,
-          active: isActive
-        }
-      },
-      onMouseDown(event) {
-        // Ignore right clicks
-        if (event.button === 2) return
+      }
 
-        // Register begin point
-        this.mouseDown = true
-        this.startPoint = {
+      return {
+        x: this.$el.scrollLeft || document.body.scrollLeft || document.documentElement.scrollLeft,
+        y: this.$el.scrollTop || document.body.scrollTop || document.documentElement.scrollTop,
+      }
+    },
+    getClasses(item) {
+      // console.log(this.selectedItems.map(_item => _item.i))
+      const isActive = !!this.selectedItems.find(
+        selectedItem => parseInt(selectedItem.i, 10) === item.i,
+      )
+      return {
+        item: true,
+        active: isActive,
+      }
+    },
+    onMouseDown(event) {
+      // Ignore right clicks
+      if (event.button === 2) return
+
+      // Register begin point
+      this.mouseDown = true
+      this.startPoint = {
+        x: event.pageX,
+        y: event.pageY,
+      }
+
+      // Start listening for mouse move and up events
+      window.addEventListener('mousemove', this.onMouseMove)
+      window.addEventListener('mouseup', this.onMouseUp)
+    },
+    onMouseMove(event) {
+      // Update the end point position
+      if (this.mouseDown) {
+        this.endPoint = {
           x: event.pageX,
-          y: event.pageY
+          y: event.pageY,
         }
-
-        // Start listening for mouse move and up events
-        window.addEventListener('mousemove', this.onMouseMove)
-        window.addEventListener('mouseup', this.onMouseUp)
-      },
-      onMouseMove(event) {
-        // Update the end point position
-        if (this.mouseDown) {
-          this.endPoint = {
-            x: event.pageX,
-            y: event.pageY
-          }
-          const children = this.$children[0].$children
-          if (children) {
-            this.selectedItems = Array.from(children).filter((item) => this.isItemSelected(item.$el || item))
-          }
-        }
-      },
-      onMouseUp() {
-        // Clean up event listeners
-        window.removeEventListener('mousemove', this.onMouseMove)
-        window.removeEventListener('mouseup', this.onMouseUp)
-
-        // Reset state
-        this.mouseDown = false
-        this.startPoint = null
-        this.endPoint = null
-      },
-      isItemSelected(el) {
-        if (el.classList.contains('cell')) {
-          const boxA = this.selectionBox
-          const boxB = {
-            top: el.offsetTop,
-            left: el.offsetLeft,
-            width: el.clientWidth,
-            height: el.clientHeight
-          }
-          return !!(
-            boxA.left <= boxB.left + boxB.width &&
-            boxA.left + boxA.width >= boxB.left &&
-            boxA.top <= boxB.top + boxB.height &&
-            boxA.top + boxA.height >= boxB.top
+        const children = this.$children[0].$children
+        if (children) {
+          this.selectedItems = Array.from(children).filter(item =>
+            this.isItemSelected(item.$el || item),
           )
         }
-        return false
       }
     },
-    mounted() {
-      this.$children[0].$children.forEach((child) => {
+    onMouseUp() {
+      // Clean up event listeners
+      window.removeEventListener('mousemove', this.onMouseMove)
+      window.removeEventListener('mouseup', this.onMouseUp)
+
+      // Reset state
+      this.mouseDown = false
+      this.startPoint = null
+      this.endPoint = null
+    },
+    isItemSelected(el) {
+      if (el.classList.contains('cell')) {
+        const boxA = this.selectionBox
+        const boxB = {
+          top: el.offsetTop,
+          left: el.offsetLeft,
+          width: el.clientWidth,
+          height: el.clientHeight,
+        }
+        return !!(
+          boxA.left <= boxB.left + boxB.width &&
+          boxA.left + boxA.width >= boxB.left &&
+          boxA.top <= boxB.top + boxB.height &&
+          boxA.top + boxA.height >= boxB.top
+        )
+      }
+      return false
+    },
+  },
+  mounted() {
+    this.$children[0].$children.forEach(child => {
       child.$on('click', () => {
-        const included = this.selectedItems.find((item) => child.$el === item.$el)
+        const included = this.selectedItems.find(item => child.$el === item.$el)
         if (included) {
-          this.selectedItems = this.selectedItems.filter((item) => child.$el !== item.$el)
+          this.selectedItems = this.selectedItems.filter(item => child.$el !== item.$el)
         } else {
           this.selectedItems.push(child)
         }
       })
     })
-    },
-    beforeDestroy() {
-      // Remove event listeners
-      window.removeEventListener('mousemove', this.onMouseMove)
-      window.removeEventListener('mouseup', this.onMouseUp)
+  },
+  beforeDestroy() {
+    // Remove event listeners
+    window.removeEventListener('mousemove', this.onMouseMove)
+    window.removeEventListener('mouseup', this.onMouseUp)
 
-      this.$children.forEach((child) => {
-        child.$off('click')
-      })
-    }
-  }
+    this.$children.forEach(child => {
+      child.$off('click')
+    })
+  },
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

@@ -1,21 +1,19 @@
+const isStrict = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'ci'
+
 module.exports = {
   root: true,
   env: {
     node: true,
   },
-  extends: [
-    'plugin:vue/essential',
-    '@vue/airbnb',
-    'prettier',
-  ],
-  'plugins': ['prettier'],
+  extends: ['plugin:vue/essential', '@vue/airbnb', 'prettier'],
+  plugins: ['prettier'],
   rules: {
     semi: [2, 'never'],
 
-    'prettier/prettier': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'prettier/prettier': isStrict ? 'error' : 'off',
 
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': isStrict ? 'error' : 'off',
+    'no-debugger': isStrict ? 'error' : 'off',
   },
   parserOptions: {
     parser: 'babel-eslint',
