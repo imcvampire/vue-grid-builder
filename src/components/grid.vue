@@ -44,7 +44,7 @@ import VueGridLayout from 'vue-grid-layout'
 
 const nGrids = 6 * 12
 
-const createGrid = ({ x, y, w, h, i, selected = false }) => ({
+const createGrid = ({ x, y, w = 1, h = 1, i, selected = false }) => ({
   x,
   y,
   w,
@@ -64,8 +64,6 @@ export default {
         createGrid({
           x: index % 6,
           y: Math.floor(index / 6),
-          w: 1,
-          h: 1,
           i: index,
         }),
       ),
