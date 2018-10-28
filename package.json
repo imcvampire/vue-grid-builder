@@ -11,7 +11,9 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
-    "vue": "^2.5.17"
+    "vue": "^2.5.17",
+    "vue-drag-select": "^0.1.5",
+    "vue-grid-layout": "^2.3.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.0.5",
