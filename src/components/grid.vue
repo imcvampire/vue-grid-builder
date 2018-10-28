@@ -29,7 +29,6 @@
       >
         {{ item.i }}
       </grid-item>
-      <slot :selectedItems="selectedItems"/>
       <div
         v-if="mouseDown"
         :style="selectionBoxStyling"
@@ -71,6 +70,7 @@ export default {
       mouseDown: false,
       startPoint: null,
       endPoint: null,
+      // FIXME: no use. No sửa logic rồi xóa đi. Dùng biến selected ở trên tốt hơn
       selectedItems: [],
     }
   },
@@ -114,12 +114,12 @@ export default {
   mounted() {
     this.$children[0].$children.forEach(child => {
       child.$on('click', () => {
-        const included = this.selectedItems.find(item => child.$el === item.$el)
-        if (included) {
-          this.selectedItems = this.selectedItems.filter(item => child.$el !== item.$el)
-        } else {
-          this.selectedItems.push(child)
-        }
+        // const included = this.selectedItems.find(item => child.$el === item.$el)
+        // if (included) {
+        //   this.selectedItems = this.selectedItems.filter(item => child.$el !== item.$el)
+        // } else {
+        //   this.selectedItems.push(child)
+        // }
       })
     })
   },
