@@ -1,11 +1,32 @@
 <template>
-  <grid-layout :layout.sync="layout" :col-num="6" :row-height="30" :is-draggable="isDraggable" :is-resizable="true" :is-mirrored="false" :vertical-compact="true" :use-css-transforms="true" :margin="[0,0]">
+  <grid-layout
+    :layout.sync="layout"
+    :col-num="6"
+    :row-height="30"
+    :is-draggable="isDraggable"
+    :is-resizable="false"
+    :is-mirrored="false"
+    :vertical-compact="true"
+    :use-css-transforms="true"
+    :margin="[0,0]"
+  >
     <div class="container vue-drag-select" @mousedown="onMouseDown" ref="container">
-    <grid-item class="cell" :class="getClasses(item)" v-for="item in layout" :key="item.i" :data-item="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h" :i="item.i">
-      {{item.i}}
-    </grid-item>
-    <slot :selectedItems="selectedItems" />
-    <div v-if="mouseDown" class="vue-drag-select-box" :style="selectionBoxStyling"></div>
+      <grid-item
+        class="cell"
+        :class="getClasses(item)"
+        v-for="item in layout"
+        :data-item="item"
+        :x="item.x"
+        :y="item.y"
+        :w="item.w"
+        :h="item.h"
+        :i="item.i"
+        :key="item.i"
+      >
+        {{item.i}}
+      </grid-item>
+      <slot :selectedItems="selectedItems"/>
+      <div v-if="mouseDown" class="vue-drag-select-box" :style="selectionBoxStyling"></div>
     </div>
   </grid-layout>
 </template>
@@ -14,6 +35,15 @@
 import VueGridLayout from 'vue-grid-layout'
 
 const nGrids = 6 * 12
+
+const createGrid = ({ x, y, w, h, i, selected = false }) => ({
+  x,
+  y,
+  w,
+  h,
+  i,
+  selected,
+})
 
 export default {
   components: {
@@ -25,13 +55,15 @@ export default {
   },
   data() {
     return {
-      layout: new Array(nGrids).fill(null).map((item, index) => ({
-        x: index % 6,
-        y: Math.floor(index / 6),
-        w: 1,
-        h: 1,
-        i: index,
-      })),
+      layout: new Array(nGrids).fill(null).map((item, index) =>
+        createGrid({
+          x: index % 6,
+          y: Math.floor(index / 6),
+          w: 1,
+          h: 1,
+          i: index,
+        }),
+      ),
       isDraggable: false,
       mouseDown: false,
       startPoint: null,
@@ -103,7 +135,7 @@ export default {
     },
     onMouseDown(event) {
       // Ignore right clicks
-      if (event.button === 2) return
+      if (event.button !== 0) return
 
       // Register begin point
       this.mouseDown = true
@@ -184,7 +216,6 @@ export default {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 *,
 *:before,
@@ -205,7 +236,7 @@ body {
 }
 
 .container {
-  width: 330yarn add vue-grid-layoutpx;
+  width: 330;
 }
 
 /* Custom styling */
@@ -226,7 +257,7 @@ body {
 
 .cell {
   border: 1px solid;
-  text-align: 'center';
+  text-align: center;
 }
 
 .vue-drag-select {
