@@ -19,6 +19,7 @@
         v-for="item in layout"
         :class="getClasses(item)"
         :data-item="item"
+        :ref="'item'"
         :x="item.x"
         :y="item.y"
         :w="item.w"
@@ -148,13 +149,9 @@ export default {
       }
     },
     getClasses(item) {
-      // console.log(this.selectedItems.map(_item => _item.i))
-      const isActive = !!this.selectedItems.find(
-        selectedItem => parseInt(selectedItem.i, 10) === item.i,
-      )
       return {
         item: true,
-        active: isActive,
+        active: item.selected,
       }
     },
     onMouseDown(event) {
@@ -179,33 +176,18 @@ export default {
           x: event.pageX,
           y: event.pageY,
         }
-        const children = this.$children[0].$children
-        if (children) {
-          this.selectedItems = Array.from(children).filter(item =>
-            this.isItemSelected(item.$el || item),
-          )
-        }
+        /* eslint-disable no-console */
+        Array.from(this.$refs.item).forEach((item, index) => {
+          if (this.isItemSelected(item.$el || item)) {
+            this.$set(this.layout[index], 'selected', true)
+          }
+        })
       }
     },
-    onMouseUp() {
-      // Clean up event listeners
-      window.removeEventListener('mousemove', this.onMouseMove)
-      window.removeEventListener('mouseup', this.onMouseUp)
-
-      // Reset state
-      this.mouseDown = false
-      this.startPoint = null
-      this.endPoint = null
-    },
     isItemSelected(el) {
-      if (el.classList.contains('cell')) {
+      if (el.classList.contains('item')) {
         const boxA = this.selectionBox
-        const boxB = {
-          top: el.offsetTop,
-          left: el.offsetLeft,
-          width: el.clientWidth,
-          height: el.clientHeight,
-        }
+        const boxB = el.getBoundingClientRect()
         return !!(
           boxA.left <= boxB.left + boxB.width &&
           boxA.left + boxA.width >= boxB.left &&
@@ -214,6 +196,28 @@ export default {
         )
       }
       return false
+    },
+    onMouseUp() {
+      const selected = this.layout.filter(item => item.selected)
+      if (selected.length) {
+        const minItem = selected.find(selection => selection.i === Math.min(...selected.map(item => item.i)))
+        const maxItem = selected.find(selection => selection.i === Math.max(...selected.map(item => item.i)))
+        const newItem = {
+          ...minItem,
+          w: (maxItem.i % 6) - (minItem.i % 6) + 1,
+          h: Math.floor(maxItem.i / 6) - Math.floor(minItem.i / 6) + 1,
+        }
+        const newLayout = this.layout.filter(item => !item.selected).concat(newItem)
+        this.$set(this, 'layout', newLayout)
+      }
+      // Clean up event listeners
+      window.removeEventListener('mousemove', this.onMouseMove)
+      window.removeEventListener('mouseup', this.onMouseUp)
+
+      // Reset state
+      this.mouseDown = false
+      this.startPoint = null
+      this.endPoint = null
     },
   },
 }
