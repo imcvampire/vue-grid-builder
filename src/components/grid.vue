@@ -68,6 +68,7 @@ export default {
         }),
       ),
       isDraggable: false,
+      isDuplicated: false,
       mouseDown: false,
       startPoint: null,
       endPoint: null,
@@ -177,9 +178,14 @@ export default {
           y: event.pageY,
         }
         /* eslint-disable no-console */
-        Array.from(this.$refs.item).forEach((item, index) => {
+        Array.from(this.$refs.item).forEach((item) => {
           if (this.isItemSelected(item.$el || item)) {
-            this.$set(this.layout[index], 'selected', true)
+            const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
+            if(this.layout[i].w !== 1 && this.layout[i].h !== 1) {
+              this.$set(this, 'isDuplicated', true)
+              this.onMouseUp()
+            }
+            this.$set(this.layout[i], 'selected', true)
           }
         })
       }
@@ -198,8 +204,8 @@ export default {
       return false
     },
     onMouseUp() {
-      const selected = this.layout.filter(item => item.selected)
-      if (selected.length) {
+      const selected = this.layout.filter(item => item.selected && item.w === 1 && item.h === 1)
+      if (selected.length && !this.isDuplicated) {
         const minItem = selected.find(selection => selection.i === Math.min(...selected.map(item => item.i)))
         const maxItem = selected.find(selection => selection.i === Math.max(...selected.map(item => item.i)))
         const newItem = {
@@ -207,14 +213,22 @@ export default {
           w: (maxItem.i % 6) - (minItem.i % 6) + 1,
           h: Math.floor(maxItem.i / 6) - Math.floor(minItem.i / 6) + 1,
         }
-        const newLayout = this.layout.filter(item => !item.selected).concat(newItem)
+        const newLayout = this.layout.filter(item => !item.selected || item.w > 1 || item.h > 1).concat(newItem)
         this.$set(this, 'layout', newLayout)
       }
+      if(this.isDuplicated) {
+        selected.forEach(item => {
+          const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
+          this.$set(this.layout[i], 'selected', false)
+        })
+      }
+
       // Clean up event listeners
       window.removeEventListener('mousemove', this.onMouseMove)
       window.removeEventListener('mouseup', this.onMouseUp)
 
       // Reset state
+      this.isDuplicated = false
       this.mouseDown = false
       this.startPoint = null
       this.endPoint = null
