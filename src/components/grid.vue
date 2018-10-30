@@ -295,26 +295,31 @@ export default {
 }
 </script>
 
+<style module>
+.option {
+  min-width: 30px;
+  height: 70px;
+  background-color: white;
+  border: 2px solid gray;
+  float: left;
+  margin: 10px;
+}
+.optionImage {
+  width: 30px;
+  height: 30px;
+  margin: 10px 10px 5px;
+}
+.optionText {
+  color: black;
+}
+.menu {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+</style>
+
 <style scoped>
-
-*,
-*:before,
-*:after {
-  box-sizing: inherit;
-}
-
-html {
-  box-sizing: border-box;
-  user-select: none;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-}
-
 .container {
   width: 330px;
 }
@@ -330,4 +335,24 @@ body {
 }
 
 .item.active {
-  b
+  background-color: rgb(0, 162, 255);
+  color: #fff;
+  border: none;
+}
+
+.cell {
+  border: 1px solid;
+  text-align: center;
+}
+
+.vue-drag-select {
+  position: relative;
+  user-select: none;
+}
+
+.vue-drag-select-box {
+  position: absolute;
+  background: rgba(0, 162, 255, 0.4);
+  z-index: 99;
+}
+</style>
