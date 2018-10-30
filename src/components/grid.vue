@@ -297,6 +297,7 @@ export default {
 
 <style scoped>
 
+
 *,
 *:before,
 *:after {
@@ -324,10 +325,4 @@ body {
 .item {
   display: inline-flex;
   width: 50px;
-  height: 50px;
-  background-color: whitesmoke;
-  border: 1px solid;
-}
-
-.item.active {
-  b
+  height:
