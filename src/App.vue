@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <GridBuilder />
+    <GridBuilder
+      debug
+    />
   </div>
 </template>
 
