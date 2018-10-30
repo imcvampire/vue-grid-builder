@@ -5,13 +5,14 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "buid:bundle": "vue-cli-service build --target lib --name vue-grid-builder ./src/components/grid-builder",
+    "buid:bundle": "vue-cli-service build --target lib --name vue-grid-builder ./src/components/grid",
     "lint": "vue-cli-service lint",
     "lint:fix": "prettier-eslint --write \"src/**/*.{js,vue,css}\"",
     "test:e2e": "vue-cli-service test:e2e",
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
+    "postcss-utilities": "^0.8.0",
     "prettier-eslint": "^8.8.2",
     "vue": "^2.5.17",
     "vue-drag-select": "^0.1.5",

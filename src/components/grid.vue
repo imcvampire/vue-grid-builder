@@ -28,7 +28,31 @@
         :key="item.i"
         class="cell"
       >
-        {{ item.i }}
+        <div v-if="debug">{{ item.i }}</div>
+        <div v-if="item.selected">
+          <div v-if="item.component == null">
+            <div
+              v-for="option in selectableComponents"
+              :class="$style.option"
+              :key="option.name"
+              @click="selectComponent(option, item.i)"
+            >
+              <img
+                :class="$style.optionImage"
+                :src="option.image"
+              >
+              <div :class="$style.optionText">{{ option.name }}</div>
+            </div>
+          </div>
+          <div v-else>
+            <component :is="item.component"/>
+            <menu-component
+              :class="$style.menu"
+              @delete="deleteSelectedSelection"
+              @reselect="() => reselectSelection(item)"
+            />
+          </div>
+        </div>
       </grid-item>
       <div
         v-if="mouseDown"
@@ -42,21 +66,31 @@
 <script>
 import VueGridLayout from 'vue-grid-layout'
 
+import Menu from './menu.vue'
+
 const nGrids = 6 * 12
 
-const createGrid = ({ x, y, w = 1, h = 1, i, selected = false }) => ({
+const createGrid = ({ x, y, w = 1, h = 1, i, selected = false, component }) => ({
   x,
   y,
   w,
   h,
   i,
   selected,
+  component,
 })
 
 export default {
   name: 'GridBuilder',
   components: {
     VueGridLayout,
+    MenuComponent: Menu,
+  },
+  props: {
+    debug: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -72,8 +106,18 @@ export default {
       mouseDown: false,
       startPoint: null,
       endPoint: null,
-      // FIXME: no use. No sửa logic rồi xóa đi. Dùng biến selected ở trên tốt hơn
-      selectedItems: [],
+
+      selectableComponents: [
+        {
+          name: 'input',
+          image: '/download.png',
+          component: 'input',
+        },
+        {
+          name: 'select',
+          component: 'select',
+        },
+      ],
     }
   },
   computed: {
@@ -114,16 +158,9 @@ export default {
     },
   },
   mounted() {
-    this.$children[0].$children.forEach(child => {
-      child.$on('click', () => {
-        // const included = this.selectedItems.find(item => child.$el === item.$el)
-        // if (included) {
-        //   this.selectedItems = this.selectedItems.filter(item => child.$el !== item.$el)
-        // } else {
-        //   this.selectedItems.push(child)
-        // }
-      })
-    })
+    // this.$children[0].$children.forEach(child => {
+    //   child.$on('click', () => {})
+    // })
   },
   beforeDestroy() {
     // Remove event listeners
@@ -178,10 +215,10 @@ export default {
           y: event.pageY,
         }
         /* eslint-disable no-console */
-        Array.from(this.$refs.item).forEach((item) => {
+        Array.from(this.$refs.item).forEach(item => {
           if (this.isItemSelected(item.$el || item)) {
             const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
-            if(this.layout[i].w !== 1 && this.layout[i].h !== 1) {
+            if (this.layout[i].w !== 1 && this.layout[i].h !== 1) {
               this.$set(this, 'isDuplicated', true)
               this.onMouseUp()
             }
@@ -206,17 +243,23 @@ export default {
     onMouseUp() {
       const selected = this.layout.filter(item => item.selected && item.w === 1 && item.h === 1)
       if (selected.length && !this.isDuplicated) {
-        const minItem = selected.find(selection => selection.i === Math.min(...selected.map(item => item.i)))
-        const maxItem = selected.find(selection => selection.i === Math.max(...selected.map(item => item.i)))
+        const minItem = selected.find(
+          selection => selection.i === Math.min(...selected.map(item => item.i)),
+        )
+        const maxItem = selected.find(
+          selection => selection.i === Math.max(...selected.map(item => item.i)),
+        )
         const newItem = {
           ...minItem,
           w: (maxItem.i % 6) - (minItem.i % 6) + 1,
           h: Math.floor(maxItem.i / 6) - Math.floor(minItem.i / 6) + 1,
         }
-        const newLayout = this.layout.filter(item => !item.selected || item.w > 1 || item.h > 1).concat(newItem)
+        const newLayout = this.layout
+          .filter(item => !item.selected || item.w > 1 || item.h > 1)
+          .concat(newItem)
         this.$set(this, 'layout', newLayout)
       }
-      if(this.isDuplicated) {
+      if (this.isDuplicated) {
         selected.forEach(item => {
           const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
           this.$set(this.layout[i], 'selected', false)
@@ -233,11 +276,27 @@ export default {
       this.startPoint = null
       this.endPoint = null
     },
+
+    selectComponent(option, itemId) {
+      const item = this.layout.find(_ => _.i === itemId)
+      console.log(item)
+      if (item == null) return
+
+      this.$set(item, 'component', option.component)
+    },
+
+    deleteSelectedSelection() {
+      console.log('delete')
+    },
+    reselectSelection(item) {
+      this.$set(item, 'component', null)
+    },
   },
 }
 </script>
 
 <style scoped>
+
 *,
 *:before,
 *:after {
@@ -271,24 +330,4 @@ body {
 }
 
 .item.active {
-  background-color: rgb(0, 162, 255);
-  color: #fff;
-  border: none;
-}
-
-.cell {
-  border: 1px solid;
-  text-align: center;
-}
-
-.vue-drag-select {
-  position: relative;
-  user-select: none;
-}
-
-.vue-drag-select-box {
-  position: absolute;
-  background: rgba(0, 162, 255, 0.4);
-  z-index: 99;
-}
-</style>
+  b
