@@ -295,7 +295,28 @@ export default {
 }
 </script>
 
-<style module src="./grid.module.css">
+<style module>
+.option {
+  min-width: 30px;
+  height: 70px;
+  background-color: white;
+  border: 2px solid gray;
+  float: left;
+  margin: 10px;
+}
+.optionImage {
+  width: 30px;
+  height: 30px;
+  margin: 10px 10px 5px;
+}
+.optionText {
+  color: black;
+}
+.menu {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
 </style>
 
 <style scoped>
