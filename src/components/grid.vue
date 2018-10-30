@@ -295,27 +295,10 @@ export default {
 }
 </script>
 
+<style module src="./grid.module.css">
+</style>
+
 <style scoped>
-
-
-*,
-*:before,
-*:after {
-  box-sizing: inherit;
-}
-
-html {
-  box-sizing: border-box;
-  user-select: none;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-}
-
 .container {
   width: 330px;
 }
@@ -325,4 +308,30 @@ body {
 .item {
   display: inline-flex;
   width: 50px;
-  height:
+  height: 50px;
+  background-color: whitesmoke;
+  border: 1px solid;
+}
+
+.item.active {
+  background-color: rgb(0, 162, 255);
+  color: #fff;
+  border: none;
+}
+
+.cell {
+  border: 1px solid;
+  text-align: center;
+}
+
+.vue-drag-select {
+  position: relative;
+  user-select: none;
+}
+
+.vue-drag-select-box {
+  position: absolute;
+  background: rgba(0, 162, 255, 0.4);
+  z-index: 99;
+}
+</style>
