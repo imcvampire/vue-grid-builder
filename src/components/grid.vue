@@ -64,7 +64,6 @@
 </template>
 
 <script>
-
 import VueGridLayout from 'vue-grid-layout'
 
 import Menu from './menu.vue'
@@ -296,3 +295,84 @@ export default {
       for(let wIndex = 0; wIndex < item.w; wIndex += 1) {
         for(let hIndex = 0; hIndex < item.h; hIndex += 1) {
           layout = layout.concat({
+            x: item.x + wIndex,
+            y: item.y + hIndex,
+            w: 1,
+            h: 1,
+            i: item.i + wIndex + 6*hIndex,
+            selected: false,
+            component: false,
+            included: false,
+            merged: false})
+        }
+      }
+      this.$set(this, 'layout', layout)
+    },
+    reselectSelection(item) {
+      this.$set(item, 'component', null)
+    },
+  },
+}
+</script>
+
+<style module>
+.option {
+  min-width: 30px;
+  height: 70px;
+  background-color: white;
+  border: 2px solid gray;
+  float: left;
+  margin: 10px;
+}
+.optionImage {
+  width: 30px;
+  height: 30px;
+  margin: 10px 10px 5px;
+}
+.optionText {
+  color: black;
+}
+.menu {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+</style>
+
+<style scoped>
+.container {
+  width: 330px;
+}
+
+/* Custom styling */
+
+.item {
+  display: inline-flex;
+  width: 50px;
+  height: 50px;
+  background-color: whitesmoke;
+  border: 1px solid;
+}
+
+.item.active {
+  background-color: rgb(0, 162, 255);
+  color: #fff;
+  border: none;
+}
+
+.cell {
+  border: 1px solid;
+  text-align: center;
+}
+
+.vue-drag-select {
+  position: relative;
+  user-select: none;
+}
+
+.vue-drag-select-box {
+  position: absolute;
+  background: rgba(0, 162, 255, 0.4);
+  z-index: 99;
+}
+</style>
