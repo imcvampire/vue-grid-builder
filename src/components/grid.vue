@@ -4,7 +4,7 @@
     :col-num="6"
     :row-height="30"
     :is-draggable="isDraggable"
-    :is-resizable="isResizable"
+    :is-resizable="false"
     :is-mirrored="false"
     :vertical-compact="true"
     :use-css-transforms="true"
@@ -48,7 +48,7 @@
             <component :is="item.component"/>
             <menu-component
               :class="$style.menu"
-              @delete="() => deleteSelectedSelection(item)"
+              @delete="deleteSelectedSelection"
               @reselect="() => reselectSelection(item)"
             />
           </div>
@@ -64,14 +64,13 @@
 </template>
 
 <script>
-
 import VueGridLayout from 'vue-grid-layout'
 
 import Menu from './menu.vue'
 
 const nGrids = 6 * 12
 
-const createGrid = ({ x, y, w = 1, h = 1, i, selected = false,included = false,merged = false, component }) => ({
+const createGrid = ({ x, y, w = 1, h = 1, i, selected = false, component }) => ({
   x,
   y,
   w,
@@ -79,8 +78,6 @@ const createGrid = ({ x, y, w = 1, h = 1, i, selected = false,included = false,m
   i,
   selected,
   component,
-  included,
-  merged
 })
 
 export default {
@@ -105,7 +102,6 @@ export default {
         }),
       ),
       isDraggable: false,
-      isResizable: false,
       isDuplicated: false,
       mouseDown: false,
       startPoint: null,
@@ -193,7 +189,7 @@ export default {
     getClasses(item) {
       return {
         item: true,
-        active: item.included,
+        active: item.selected,
       }
     },
     onMouseDown(event) {
@@ -220,14 +216,14 @@ export default {
         }
         /* eslint-disable no-console */
         Array.from(this.$refs.item).forEach(item => {
-          const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
-          if(this.isItemSelected(item.$el || item)) {
+          if (this.isItemSelected(item.$el || item)) {
+            const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
             if (this.layout[i].w !== 1 && this.layout[i].h !== 1) {
               this.$set(this, 'isDuplicated', true)
               this.onMouseUp()
             }
+            this.$set(this.layout[i], 'selected', true)
           }
-          if(!this.layout[i].merged) this.$set(this.layout[i], 'included', this.isItemSelected(item.$el || item))
         })
       }
     },
@@ -235,17 +231,17 @@ export default {
       if (el.classList.contains('item')) {
         const boxA = this.selectionBox
         const boxB = el.getBoundingClientRect()
-        return (
+        return !!(
           boxA.left <= boxB.left + boxB.width &&
-          boxA.top <= boxB.top + boxB.height &&
           boxA.left + boxA.width >= boxB.left &&
+          boxA.top <= boxB.top + boxB.height &&
           boxA.top + boxA.height >= boxB.top
         )
       }
       return false
     },
     onMouseUp() {
-      const selected = this.layout.filter(item => item.included && !item.merged && item.w === 1 && item.h === 1)
+      const selected = this.layout.filter(item => item.selected && item.w === 1 && item.h === 1)
       if (selected.length && !this.isDuplicated) {
         const minItem = selected.find(
           selection => selection.i === Math.min(...selected.map(item => item.i)),
@@ -257,18 +253,16 @@ export default {
           ...minItem,
           w: (maxItem.i % 6) - (minItem.i % 6) + 1,
           h: Math.floor(maxItem.i / 6) - Math.floor(minItem.i / 6) + 1,
-          merged: true,
-          selected: true,
         }
         const newLayout = this.layout
-          .filter(item => !item.included || item.merged)
+          .filter(item => !item.selected || item.w > 1 || item.h > 1)
           .concat(newItem)
         this.$set(this, 'layout', newLayout)
       }
       if (this.isDuplicated) {
         selected.forEach(item => {
           const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
-          this.$set(this.layout[i], 'included', false)
+          this.$set(this.layout[i], 'selected', false)
         })
       }
 
@@ -291,8 +285,74 @@ export default {
       this.$set(item, 'component', option.component)
     },
 
-    deleteSelectedSelection(item) {
-      let layout = this.layout.filter(_ => _.i !== item.i)
-      for(let wIndex = 0; wIndex < item.w; wIndex += 1) {
-        for(let hIndex = 0; hIndex < item.h; hIndex += 1) {
-          layout = layout.concat({
+    deleteSelectedSelection() {
+      console.log('delete')
+    },
+    reselectSelection(item) {
+      this.$set(item, 'component', null)
+    },
+  },
+}
+</script>
+
+<style module>
+.option {
+  min-width: 30px;
+  height: 70px;
+  background-color: white;
+  border: 2px solid gray;
+  float: left;
+  margin: 10px;
+}
+.optionImage {
+  width: 30px;
+  height: 30px;
+  margin: 10px 10px 5px;
+}
+.optionText {
+  color: black;
+}
+.menu {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+</style>
+
+<style scoped>
+.container {
+  width: 330px;
+}
+
+/* Custom styling */
+
+.item {
+  display: inline-flex;
+  width: 50px;
+  height: 50px;
+  background-color: whitesmoke;
+  border: 1px solid;
+}
+
+.item.active {
+  background-color: rgb(0, 162, 255);
+  color: #fff;
+  border: none;
+}
+
+.cell {
+  border: 1px solid;
+  text-align: center;
+}
+
+.vue-drag-select {
+  position: relative;
+  user-select: none;
+}
+
+.vue-drag-select-box {
+  position: absolute;
+  background: rgba(0, 162, 255, 0.4);
+  z-index: 99;
+}
+</style>
