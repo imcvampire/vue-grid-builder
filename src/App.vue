@@ -2,6 +2,7 @@
   <div id="app">
     <GridBuilder
       debug
+      style="width: 1000px; height: 1000px;"
     />
   </div>
 </template>

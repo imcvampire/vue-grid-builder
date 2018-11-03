@@ -2,13 +2,14 @@
   <grid-layout
     :layout.sync="layout"
     :col-num="6"
-    :row-height="30"
-    :is-draggable="isDraggable"
-    :is-resizable="isResizable"
+    :row-height="60"
+    :max-rows="12"
     :is-mirrored="false"
     :vertical-compact="true"
     :use-css-transforms="true"
     :margin="[0,0]"
+    :auto-size="false"
+    @layout-changed="layoutUpdatedEvent"
   >
     <div
       ref="container"
@@ -26,7 +27,13 @@
         :h="item.h"
         :i="item.i"
         :key="item.i"
+        :is-draggable="item.isDraggable"
+        :is-resizable="item.isResizable"
         class="cell"
+        @resize="resizeEvent"
+        @move="moveEvent"
+        @resized="resizedEvent"
+        @moved="movedEvent"
       >
         <div v-if="debug">{{ item.i }}</div>
         <div v-if="item.selected">
@@ -70,7 +77,7 @@ import Menu from './menu.vue'
 
 const nGrids = 6 * 12
 
-const createGrid = ({ x, y, w = 1, h = 1, i, selected = false,included = false,merged = false, component }) => ({
+const createGrid = ({x, y, w = 1, h = 1, i, selected = false, included = false, merged = false, component, isDraggable = false, isResizable = false}) => ({
   x,
   y,
   w,
@@ -79,7 +86,9 @@ const createGrid = ({ x, y, w = 1, h = 1, i, selected = false,included = false,m
   selected,
   component,
   included,
-  merged
+  merged,
+  isDraggable,
+  isResizable,
 })
 
 export default {
@@ -106,9 +115,13 @@ export default {
       isDraggable: false,
       isResizable: false,
       isDuplicated: false,
+      isMoving: false,
       mouseDown: false,
       startPoint: null,
       endPoint: null,
+      movingItem: null,
+      needRemoveItem: null,
+      needAddItem: null,
 
       selectableComponents: [
         {
@@ -149,7 +162,7 @@ export default {
       // Only set styling when necessary
       if (!this.mouseDown || !this.startPoint || !this.endPoint) return {}
 
-      const { left, top, width, height } = this.selectionBox
+      const {left, top, width, height} = this.selectionBox
 
       // Return the styles to be applied
       return {
@@ -158,6 +171,11 @@ export default {
         width: `${width}px`,
         height: `${height}px`,
       }
+    },
+  },
+  watch: {
+    movingItem(newVal, oldVal) {
+      console.log(newVal, oldVal)
     },
   },
   mounted() {
@@ -220,13 +238,13 @@ export default {
         /* eslint-disable no-console */
         Array.from(this.$refs.item).forEach(item => {
           const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
-          if(this.isItemSelected(item.$el || item)) {
+          if (this.isItemSelected(item.$el || item)) {
             if (this.layout[i].w !== 1 && this.layout[i].h !== 1) {
               this.$set(this, 'isDuplicated', true)
               this.onMouseUp()
             }
           }
-          if(!this.layout[i].merged) this.$set(this.layout[i], 'included', this.isItemSelected(item.$el || item))
+          if (!this.layout[i].merged) this.$set(this.layout[i], 'included', this.isItemSelected(item.$el || item))
         })
       }
     },
@@ -258,6 +276,8 @@ export default {
           h: Math.floor(maxItem.i / 6) - Math.floor(minItem.i / 6) + 1,
           merged: true,
           selected: true,
+          isDraggable: true,
+          isResizable: true,
         }
         const newLayout = this.layout
           .filter(item => !item.included || item.merged)
@@ -292,24 +312,76 @@ export default {
 
     deleteSelectedSelection(item) {
       let layout = this.layout.filter(_ => _.i !== item.i)
-      for(let wIndex = 0; wIndex < item.w; wIndex += 1) {
-        for(let hIndex = 0; hIndex < item.h; hIndex += 1) {
+      for (let wIndex = 0; wIndex < item.w; wIndex += 1) {
+        for (let hIndex = 0; hIndex < item.h; hIndex += 1) {
           layout = layout.concat({
             x: item.x + wIndex,
             y: item.y + hIndex,
             w: 1,
             h: 1,
-            i: item.i + wIndex + 6*hIndex,
+            i: item.i + wIndex + 6 * hIndex,
             selected: false,
             component: false,
             included: false,
-            merged: false})
+            merged: false,
+          })
         }
       }
       this.$set(this, 'layout', layout)
     },
     reselectSelection(item) {
       this.$set(item, 'component', null)
+    },
+
+    resizeEvent(...args) {
+      console.log(...args)
+    },
+    moveEvent(i, newX, newY) {
+      const movingItem = this.layout.find(_ => _.i === i)
+      console.log('move', i, newX, newY, movingItem.x, movingItem.y)
+      let oldArr = []
+      let newArr = []
+      for(let wIndex = movingItem.x; wIndex < movingItem.x + movingItem.w; wIndex += 1) {
+        for (let hIndex = movingItem.y; hIndex < movingItem.y + movingItem.h; hIndex += 1) {
+          console.log('old',wIndex, hIndex)
+          oldArr = oldArr.concat({i: 6 * hIndex + wIndex, x: wIndex, y: hIndex, w: 1, h: 1})
+        }
+      }
+      for(let wIndex = newX; wIndex < newX + movingItem.w; wIndex += 1) {
+        for (let hIndex = newY; hIndex < newY + movingItem.h; hIndex += 1) {
+          console.log('set',wIndex, hIndex)
+          newArr = newArr.concat({i: 6 * hIndex + wIndex, x: wIndex, y: hIndex, w: 1, h: 1})
+        }
+      }
+      const needRemoveItem = newArr
+        .filter(item => !oldArr.find(_ => _.i === item.i))
+        .concat(movingItem)
+      const needAddItem = oldArr
+        .filter(item => !newArr.find(_ => _.i === item.i))
+        .concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
+      console.table(needAddItem)
+      console.table(needRemoveItem)
+      this.needAddItem = needAddItem
+      this.needRemoveItem = needRemoveItem
+
+      // if (this.isMoving) this.isMoving = false
+    },
+    resizedEvent(...args) {
+      console.log(...args)
+    },
+    movedEvent() {
+      const {needRemoveItem, needAddItem} = this
+      console.table(needAddItem)
+      console.table(needRemoveItem)
+      const layout = this.layout
+        .filter(item => (!needRemoveItem.find(_ => _.i === item.i)))
+        .concat(needAddItem)
+        // .concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
+      this.$set(this, 'layout', layout)
+
+    },
+    layoutUpdatedEvent(layout) {
+console.table(layout)
     },
   },
 }
@@ -324,14 +396,17 @@ export default {
   float: left;
   margin: 10px;
 }
+
 .optionImage {
   width: 30px;
   height: 30px;
   margin: 10px 10px 5px;
 }
+
 .optionText {
   color: black;
 }
+
 .menu {
   position: absolute;
   right: 5px;
