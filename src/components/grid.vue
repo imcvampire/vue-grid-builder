@@ -4,7 +4,7 @@
     :col-num="6"
     :row-height="30"
     :is-draggable="isDraggable"
-    :is-resizable="isResizable"
+    :is-resizable="false"
     :is-mirrored="false"
     :vertical-compact="true"
     :use-css-transforms="true"
@@ -48,7 +48,7 @@
             <component :is="item.component"/>
             <menu-component
               :class="$style.menu"
-              @delete="() => deleteSelectedSelection(item)"
+              @delete="deleteSelectedSelection"
               @reselect="() => reselectSelection(item)"
             />
           </div>
@@ -70,7 +70,7 @@ import Menu from './menu.vue'
 
 const nGrids = 6 * 12
 
-const createGrid = ({ x, y, w = 1, h = 1, i, selected = false,included = false,merged = false, component }) => ({
+const createGrid = ({ x, y, w = 1, h = 1, i, selected = false, component }) => ({
   x,
   y,
   w,
@@ -78,8 +78,6 @@ const createGrid = ({ x, y, w = 1, h = 1, i, selected = false,included = false,m
   i,
   selected,
   component,
-  included,
-  merged
 })
 
 export default {
@@ -104,7 +102,6 @@ export default {
         }),
       ),
       isDraggable: false,
-      isResizable: false,
       isDuplicated: false,
       mouseDown: false,
       startPoint: null,
@@ -192,7 +189,7 @@ export default {
     getClasses(item) {
       return {
         item: true,
-        active: item.included,
+        active: item.selected,
       }
     },
     onMouseDown(event) {
@@ -219,14 +216,14 @@ export default {
         }
         /* eslint-disable no-console */
         Array.from(this.$refs.item).forEach(item => {
-          const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
-          if(this.isItemSelected(item.$el || item)) {
+          if (this.isItemSelected(item.$el || item)) {
+            const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
             if (this.layout[i].w !== 1 && this.layout[i].h !== 1) {
               this.$set(this, 'isDuplicated', true)
               this.onMouseUp()
             }
+            this.$set(this.layout[i], 'selected', true)
           }
-          if(!this.layout[i].merged) this.$set(this.layout[i], 'included', this.isItemSelected(item.$el || item))
         })
       }
     },
@@ -234,17 +231,17 @@ export default {
       if (el.classList.contains('item')) {
         const boxA = this.selectionBox
         const boxB = el.getBoundingClientRect()
-        return (
+        return !!(
           boxA.left <= boxB.left + boxB.width &&
-          boxA.top <= boxB.top + boxB.height &&
           boxA.left + boxA.width >= boxB.left &&
+          boxA.top <= boxB.top + boxB.height &&
           boxA.top + boxA.height >= boxB.top
         )
       }
       return false
     },
     onMouseUp() {
-      const selected = this.layout.filter(item => item.included && !item.merged && item.w === 1 && item.h === 1)
+      const selected = this.layout.filter(item => item.selected && item.w === 1 && item.h === 1)
       if (selected.length && !this.isDuplicated) {
         const minItem = selected.find(
           selection => selection.i === Math.min(...selected.map(item => item.i)),
@@ -256,18 +253,16 @@ export default {
           ...minItem,
           w: (maxItem.i % 6) - (minItem.i % 6) + 1,
           h: Math.floor(maxItem.i / 6) - Math.floor(minItem.i / 6) + 1,
-          merged: true,
-          selected: true,
         }
         const newLayout = this.layout
-          .filter(item => !item.included || item.merged)
+          .filter(item => !item.selected || item.w > 1 || item.h > 1)
           .concat(newItem)
         this.$set(this, 'layout', newLayout)
       }
       if (this.isDuplicated) {
         selected.forEach(item => {
           const i = this.layout.findIndex(layoutItem => layoutItem.i === item.i)
-          this.$set(this.layout[i], 'included', false)
+          this.$set(this.layout[i], 'selected', false)
         })
       }
 
