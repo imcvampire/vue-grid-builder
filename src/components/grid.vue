@@ -123,6 +123,8 @@ export default {
       needRemoveItem: null,
       needAddItem: null,
 
+      includedComponent: [],
+
       selectableComponents: [
         {
           name: 'input',
@@ -279,6 +281,8 @@ export default {
           isDraggable: true,
           isResizable: true,
         }
+        this.$set(this, 'includedComponent', this.includedComponent.concat(minItem.i))
+        console.log('set include', this.includedComponent)
         const newLayout = this.layout
           .filter(item => !item.included || item.merged)
           .concat(newItem)
@@ -301,7 +305,6 @@ export default {
       this.startPoint = null
       this.endPoint = null
     },
-
     selectComponent(option, itemId) {
       const item = this.layout.find(_ => _.i === itemId)
       console.log(item)
@@ -309,7 +312,6 @@ export default {
 
       this.$set(item, 'component', option.component)
     },
-
     deleteSelectedSelection(item) {
       let layout = this.layout.filter(_ => _.i !== item.i)
       for (let wIndex = 0; wIndex < item.w; wIndex += 1) {
@@ -332,56 +334,49 @@ export default {
     reselectSelection(item) {
       this.$set(item, 'component', null)
     },
-
     resizeEvent(...args) {
       console.log(...args)
     },
     moveEvent(i, newX, newY) {
-      const movingItem = this.layout.find(_ => _.i === i)
-      console.log('move', i, newX, newY, movingItem.x, movingItem.y)
-      let oldArr = []
-      let newArr = []
-      for(let wIndex = movingItem.x; wIndex < movingItem.x + movingItem.w; wIndex += 1) {
-        for (let hIndex = movingItem.y; hIndex < movingItem.y + movingItem.h; hIndex += 1) {
-          console.log('old',wIndex, hIndex)
-          oldArr = oldArr.concat({i: 6 * hIndex + wIndex, x: wIndex, y: hIndex, w: 1, h: 1})
-        }
+      if(!this.movingItem) {
+        this.movingItem = this.layout.find(_ => _.i === i)
       }
-      for(let wIndex = newX; wIndex < newX + movingItem.w; wIndex += 1) {
-        for (let hIndex = newY; hIndex < newY + movingItem.h; hIndex += 1) {
-          console.log('set',wIndex, hIndex)
-          newArr = newArr.concat({i: 6 * hIndex + wIndex, x: wIndex, y: hIndex, w: 1, h: 1})
-        }
-      }
-      const needRemoveItem = newArr
-        .filter(item => !oldArr.find(_ => _.i === item.i))
-        .concat(movingItem)
-      const needAddItem = oldArr
-        .filter(item => !newArr.find(_ => _.i === item.i))
-        .concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
-      console.table(needAddItem)
-      console.table(needRemoveItem)
-      this.needAddItem = needAddItem
-      this.needRemoveItem = needRemoveItem
-
-      // if (this.isMoving) this.isMoving = false
+      console.log('move', i, newX, newY)
     },
     resizedEvent(...args) {
       console.log(...args)
     },
-    movedEvent() {
-      const {needRemoveItem, needAddItem} = this
+    movedEvent(i ,newX, newY) {
+      console.log(this.movingItem)
+      let newArr = []
+      let oldArr = []
+      const movingItem = this.layout.find(_ => _.i === i)
+      const oldItem = {x: i%6, y: Math.floor(i/6)}
+      for(let wIndex = oldItem.x; wIndex < oldItem.x + movingItem.w; wIndex += 1) {
+        for (let hIndex = oldItem.y; hIndex < oldItem.y + movingItem.h; hIndex += 1) {
+          oldArr = oldArr.concat({i: 6 * hIndex + wIndex, x: wIndex, y: hIndex, w: 1, h: 1, selected: false, included: false, merged: false, isDraggable: false, isResizable: false})
+        }
+      }
+      for(let wIndex = newX; wIndex < newX + movingItem.w; wIndex += 1) {
+        for (let hIndex = newY; hIndex < newY + movingItem.h; hIndex += 1) {
+          newArr = newArr.concat({i: 6 * hIndex + wIndex, x: wIndex, y: hIndex, w: 1, h: 1})
+        }
+      }
+      const needAddItem = oldArr.concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
+      const needRemoveItem = newArr.concat(movingItem)
+
       console.table(needAddItem)
       console.table(needRemoveItem)
+      this.needAddItem = needAddItem
+      this.needRemoveItem = needRemoveItem
       const layout = this.layout
         .filter(item => (!needRemoveItem.find(_ => _.i === item.i)))
         .concat(needAddItem)
         // .concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
       this.$set(this, 'layout', layout)
-
     },
     layoutUpdatedEvent(layout) {
-console.table(layout)
+      console.table('updated', layout)
     },
   },
 }
