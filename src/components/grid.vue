@@ -73,6 +73,8 @@
 <script>
 import VueGridLayout from 'vue-grid-layout'
 
+import cloneDeep from 'lodash.clonedeep'
+
 import Menu from './menu.vue'
 
 const nGrids = 6 * 12
@@ -339,7 +341,7 @@ export default {
     },
     moveEvent(i, newX, newY) {
       if(!this.movingItem) {
-        this.movingItem = this.layout.find(_ => _.i === i)
+        this.movingItem = cloneDeep(this.layout.find(_ => _.i === i))
       }
       console.log('move', i, newX, newY)
     },
@@ -347,10 +349,10 @@ export default {
       console.log(...args)
     },
     movedEvent(i ,newX, newY) {
-      console.log(this.movingItem)
+      const newLayout = cloneDeep(this.layout)
       let newArr = []
       let oldArr = []
-      const movingItem = this.layout.find(_ => _.i === i)
+      const movingItem = newLayout.find(_ => _.i === i)
       const oldItem = {x: i%6, y: Math.floor(i/6)}
       for(let wIndex = oldItem.x; wIndex < oldItem.x + movingItem.w; wIndex += 1) {
         for (let hIndex = oldItem.y; hIndex < oldItem.y + movingItem.h; hIndex += 1) {
@@ -369,7 +371,7 @@ export default {
       console.table(needRemoveItem)
       this.needAddItem = needAddItem
       this.needRemoveItem = needRemoveItem
-      const layout = this.layout
+      const layout = newLayout
         .filter(item => (!needRemoveItem.find(_ => _.i === item.i)))
         .concat(needAddItem)
         // .concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
