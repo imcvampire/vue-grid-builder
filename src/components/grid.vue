@@ -376,6 +376,7 @@ export default {
       const layout = newLayout
         .filter(item => (!needRemoveItem.find(_ => _.i === item.i)))
         .concat(needAddItem)
+        .map(item => ({...item, i: item.i + 72}))
         // .concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
       setTimeout(() => {
         console.log(1)
