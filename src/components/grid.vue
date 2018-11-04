@@ -375,7 +375,10 @@ export default {
         .filter(item => (!needRemoveItem.find(_ => _.i === item.i)))
         .concat(needAddItem)
         // .concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
-      this.$set(this, 'layout', layout)
+      this.$nextTick(() => {
+
+        this.$set(this, 'layout', layout)
+      })
     },
     layoutUpdatedEvent(layout) {
       console.table('updated', layout)
