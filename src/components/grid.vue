@@ -288,7 +288,9 @@ export default {
         const newLayout = this.layout
           .filter(item => !item.included || item.merged)
           .concat(newItem)
-        this.$set(this, 'layout', newLayout)
+        this.$nextTick(() => {
+          this.$set(this, 'layout', newLayout)
+        })
       }
       if (this.isDuplicated) {
         selected.forEach(item => {
@@ -376,7 +378,6 @@ export default {
         .concat(needAddItem)
         // .concat({...movingItem, x: newX, y: newY, i: 6*newY + newX})
       this.$nextTick(() => {
-
         this.$set(this, 'layout', layout)
       })
     },
